@@ -18,9 +18,8 @@ parser = Parser(compnents)
 @parser.register()
 class App(Component):
     tag = "py-app"
-    template_str = '<div attr="val" test="{doo}">some {here} text here<py-component></py-component>and here<span>doo</span>boo</div>'
+    template_str = '<div attr="val">some text here<py-component test="ok" test2="{ \'ok\' }"></py-component>and here<span>doo</span>boo</div>'
 
 app = App(parser)
-print(app.parsed)
 print(app.render())
 

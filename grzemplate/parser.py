@@ -44,12 +44,19 @@ class Parser():
     def parseNode(self, node, component):
         res = []
         if node.tag.startswith("py-"):
+            # handle components
             component_class = self.component_dict.get(node.tag, None)
             if component_class is None:
                 raise AttributeError(f"Component {node.tag} does not exist")
-            print("component:", component_class.tag)
-            res += component_class(self).parsed
+            attrs = {}
+            for k, v in node.items():
+                if v.startswith("{") and v.endswith("}"):
+                    attrs[k] = component.getRenderFunc(v.strip("{}"))()
+                else:
+                    attrs[k] = v
+            res += component_class(self, **attrs).getParsed()
         else:
+            # handle normal tags
             res.append(f"<{node.tag}")
             attrs =  [self.parseExpression(f'{k}="{v}"', component) for k, v in node.items()]
             if len(attrs) > 0:
@@ -60,7 +67,6 @@ class Parser():
             res.append(">")
             if node.text:
                 res += self.parseExpression(node.text, component)
-            #breakpoint()
             for child in node:
                 res += self.parseNode(child, component)
             res.append(f"</{node.tag}>")
