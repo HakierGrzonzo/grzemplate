@@ -1,13 +1,9 @@
 from lxml.etree import fromstring, tostring
 from .component import Component
 
-compnents = {
-    Component.tag: Component
-}
-
 class Parser():
-    def __init__(self, component_dict):
-        self.component_dict = component_dict
+    def __init__(self):
+        self.component_dict = {}
     
     def register(self):
         def func(component):
@@ -54,7 +50,8 @@ class Parser():
                     attrs[k] = component.getRenderFunc(v.strip("{}"))()
                 else:
                     attrs[k] = v
-            res += component_class(self, **attrs).getParsed()
+            inner = [self.parseNode(x, component) for x in node.getchildren()]
+            res += component_class(self, inner, **attrs).getParsed()
         else:
             # handle normal tags
             res.append(f"<{node.tag}")

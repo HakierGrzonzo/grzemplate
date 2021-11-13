@@ -3,15 +3,18 @@ from lxml.etree import fromstring, tostring
 class Component:
     tag = "py-component"
     template_str = "<p>py-component works!<span>{test2.upper()}</span></p>"
-    def __init__(self, parser, **attrs):
+    def __init__(self, parser, content = None, **attrs):
+        self.content = content
         self._attrs = attrs
         self.__parser = parser
         self._env = {}
-        for x in [globals(), self.__dict__, self._attrs]:
+        for x in [globals(), vars(self), self._attrs, {'tag': self.tag}]:
             for k, v in x.items():
                 if not k.startswith("_"):
                     self._env[k] = v 
-        self.__parsed = self.__parser.parseComponent(self)
+        self.__parsed = [f"<!-- <{self.tag}> -->"]
+        self.__parsed += self.__parser.parseComponent(self)
+        self.__parsed.append(f"<!-- </{self.tag}> -->")
 
     def __repr__(self) -> str:
         return f"<Component {self.tag} @{id(self)}>"
@@ -30,13 +33,28 @@ class Component:
         return foo
 
     def render(self):
-        res = ""
-        for item in self.__parsed:
-            if isinstance(item, str):
-                res += item
+        def sub_render(what) -> str:
+            if isinstance(what, list):
+                result = ""
+                for item in what:
+                    if isinstance(item, str):
+                        result += item
+                    else:
+                        subitem = item()
+                        if isinstance(subitem, str):
+                            result += subitem
+                        else:
+                            for x in subitem:
+                                result += sub_render(x)
+                return result
+            elif isinstance(what, function):
+                return sub_render(what())
+            elif isinstance(what, str):
+                return what
             else:
-                res += item()
-        return res
+                raise Exception("Invalid type returned!")
+
+        return sub_render(self.__parsed)
 
     def getParsed(self):
         return self.__parsed
