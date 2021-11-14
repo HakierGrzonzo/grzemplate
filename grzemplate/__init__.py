@@ -37,9 +37,9 @@ def template(location: str) -> str:
         raise Exception("Invalid path, pass __file__")
     else:
         path = str(path)[:-3] + ".html"
-    return path
+    return open(path).read()
 
 
-def renderComponentAsRoot(component: Component) -> str:
+def render(component: Component) -> str:
     return component.render()
 

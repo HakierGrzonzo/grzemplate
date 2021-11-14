@@ -1,4 +1,4 @@
-from lxml.etree import fromstring, tostring
+from lxml.html import fromstring
 from .component import Component
 
 class Parser():

@@ -7,14 +7,17 @@ class Component:
         self.content = content
         self._attrs = attrs
         self.__parser = parser
-        self._env = {}
-        for x in [globals(), vars(self), self._attrs, {'tag': self.tag}]:
-            for k, v in x.items():
-                if not k.startswith("_"):
-                    self._env[k] = v 
         self.__parsed = [f"<!-- <{self.tag}> -->"]
         self.__parsed += self.__parser.parseComponent(self)
         self.__parsed.append(f"<!-- </{self.tag}> -->")
+
+    def _get_env(self):
+        env = {}
+        for x in [globals(), locals(), self._attrs, {'tag': self.tag}]:
+            for k, v in x.items():
+                if not k.startswith("_"):
+                    env[k] = v 
+        return env
 
     def __repr__(self) -> str:
         return f"<Component {self.tag} @{id(self)}>"
@@ -23,7 +26,7 @@ class Component:
         compiled = compile(expression.strip(), self.tag, "eval")
         def foo():
             try:
-                return eval(compiled, self._env)
+                return eval(compiled, self._get_env())
             except Exception as e:
                 print(
                         f"Exception in {self}, in line:",
@@ -47,7 +50,7 @@ class Component:
                             for x in subitem:
                                 result += sub_render(x)
                 return result
-            elif isinstance(what, function):
+            elif callable(what):
                 return sub_render(what())
             elif isinstance(what, str):
                 return what
