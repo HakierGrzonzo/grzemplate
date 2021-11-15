@@ -1,5 +1,4 @@
 from lxml.html import fromstring
-from .component import Component
 
 class Parser():
     def __init__(self):
@@ -11,8 +10,8 @@ class Parser():
             return component
         return func
 
-    def parseComponent(self, component: Component):
-        node = fromstring(component.template_str)
+    def parseComponent(self, component, forced_template=None):
+        node = forced_template if forced_template is not None else fromstring(component.template_str)
         parsed = self.parseNode(node, component)
         res = []
         str = ""
@@ -39,8 +38,8 @@ class Parser():
 
     def parseNode(self, node, component):
         res = []
-        if node.tag.startswith("py-"):
-            # handle components
+        if node.tag.startswith("py-") or node.tag.startswith("pd-"):
+            # handle components and directives
             component_class = self.component_dict.get(node.tag, None)
             if component_class is None:
                 raise AttributeError(f"Component {node.tag} does not exist")
@@ -50,8 +49,11 @@ class Parser():
                     attrs[k] = component.getRenderFunc(v.strip("{}"))()
                 else:
                     attrs[k] = v
-            inner = [self.parseNode(x, component) for x in node.getchildren()]
-            res += component_class(self, inner, **attrs).getParsed()
+            if node.tag.startswith("py-"):
+                inner = [self.parseNode(x, component) for x in node.getchildren()]
+                res += component_class(self, inner, **attrs).getParsed()
+            else:
+                res += component_class(self, node.getchildren(), component._get_env().copy(), **attrs).getParsed()
         else:
             # handle normal tags
             res.append(f"<{node.tag}")
@@ -70,3 +72,5 @@ class Parser():
             if node.tail:
                 res += self.parseExpression(node.tail, component)
         return res
+
+parser = Parser()

@@ -1,15 +1,17 @@
-from lxml.etree import fromstring, tostring
+from lxml.etree import fromstring
+from . import parser
 
+@parser.register()
 class Component:
     tag = "py-component"
     template_str = "<p>py-component works!<span>{test2.upper()}</span></p>"
     def __init__(self, parser, content = None, **attrs):
         self.content = content
         self._attrs = attrs
-        self.__parser = parser
-        self.__parsed = [f"<!-- <{self.tag}> -->"]
-        self.__parsed += self.__parser.parseComponent(self)
-        self.__parsed.append(f"<!-- </{self.tag}> -->")
+        self._parser = parser
+        self._parsed = [f"<!-- <{self.tag}> -->"]
+        self._parsed += self._parser.parseComponent(self)
+        self._parsed.append(f"<!-- </{self.tag}> -->")
 
     def _get_env(self):
         env = {}
@@ -46,6 +48,8 @@ class Component:
                         subitem = item()
                         if isinstance(subitem, str):
                             result += subitem
+                        elif subitem is None:
+                            continue
                         else:
                             for x in subitem:
                                 result += sub_render(x)
@@ -57,8 +61,8 @@ class Component:
             else:
                 raise Exception("Invalid type returned!")
 
-        return sub_render(self.__parsed)
+        return sub_render(self._parsed)
 
     def getParsed(self):
-        return self.__parsed
+        return self._parsed
 
