@@ -22,8 +22,9 @@ class ScopeDirective(Directive):
     def __init__(self, parser, content, scope, **attrs):
         super().__init__(parser, content, scope, **attrs)
         self._parsed = [f"<!-- <{self._attrs.get('tag', self.tag)}> -->"]
-        for k, v in self._attrs['pass_scope'].items():
-            self._scope[k] = v
+        if self._attrs.get("pass_scope"):
+            for k, v in self._attrs['pass_scope'].items():
+                self._scope[k] = v
         for inner in self._attrs['inner_content']:
             self._parsed += self._parser.parseComponent(self, inner)
         self._parsed.append(f"<!-- </{self._attrs.get('tag', self.tag)}> -->")
@@ -43,3 +44,17 @@ class ForDirective(Directive):
             self._scope["iterator"] = {self._iterator_key: x}
             self._parsed += self._parser.parseComponent(self)
         self._parsed.append(f"<!-- </{self._attrs.get('tag', self.tag)}> -->")
+
+@parser.register()
+class IfDirective(Directive):
+    tag = "pd-if"
+    template_str = '<pd-scope inner_content="{content}"></pd-scope>'
+    def __init__(self, parser, content, scope, cond=False, **attrs):
+        super().__init__(parser, content, scope, **attrs)
+        self._scope["content"] = self.content
+        self._parsed = [f"<!-- <{self._attrs.get('tag', self.tag)}> -->"]
+        if cond:
+            self._parsed += self._parser.parseComponent(self)
+        self._parsed.append(f"<!-- </{self._attrs.get('tag', self.tag)}> -->")
+        
+
