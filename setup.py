@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name = "grzemplate",
-    version = "0.0.1",
+    version = "0.0.2",
     author = "Grzegorz Koperwas",
     author_email = "admin@grzegorzkoperwas.site",
     description = "Yet another static site generator",

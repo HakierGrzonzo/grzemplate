@@ -1,4 +1,6 @@
 from lxml.etree import fromstring
+
+from grzemplate.debug import DEBUG
 from . import parser
 
 @parser.register()
@@ -9,9 +11,12 @@ class Component:
         self.content = content
         self._attrs = attrs
         self._parser = parser
-        self._parsed = [f"<!-- <{self.tag}> -->"]
+        self._parsed = []
+        if DEBUG:
+            self._parsed.append(f"<!-- <{self.tag}> -->")
         self._parsed += self._parser.parseComponent(self)
-        self._parsed.append(f"<!-- </{self.tag}> -->")
+        if DEBUG:
+            self._parsed.append(f"<!-- </{self.tag}> -->")
 
     def _get_env(self):
         env = {}

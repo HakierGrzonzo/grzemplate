@@ -1,3 +1,5 @@
+from grzemplate.debug import DEBUG
+from grzemplate.obfuscator import obfuscate
 from .parser import parser
 from .component import Component
 from .directive import ScopeDirective, ForDirective, Directive
@@ -17,5 +19,8 @@ def template(location: str) -> str:
 
 
 def render(component: Component) -> str:
-    return component.render()
+    if DEBUG:
+        return component.render()
+    else:
+        return obfuscate(component.render())
 
